@@ -32,7 +32,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: LOCAL_CONFIG_PATH
-              value: {{ .Values.configmap.mountPath }}/{{ .Values.configmap.subPath | quote }}
+              value: {{ .Values.configmap.mountPath }}/{{ .Values.configmap.subPath }}
           ports:
             - name: http
               containerPort: 8080
