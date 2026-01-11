@@ -1,0 +1,17 @@
+app_name: {{ .Values.app.name }}
+version: {{ .Values.app.version | quote }}
+
+database:
+  host: {{ .Values.app.database.host }}
+  port: {{ .Values.app.database.port }}
+  username: {{ .Values.app.database.username }}
+  password: {{ .Values.app.database.password }}
+
+server:
+  port: {{ .Values.app.server.port }}
+  timeout: {{ .Values.app.server.timeout }}
+
+features:
+  {{- range .Values.app.features }}
+- {{ . }}
+  {{- end }}

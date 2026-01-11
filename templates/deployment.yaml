@@ -20,13 +20,19 @@ spec:
       labels:
         {{- include "adp.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.configmap.enabled }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-config{{ end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -38,3 +44,8 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.configmap.enabled }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.configmap.mountPath }}
+          {{- end }}

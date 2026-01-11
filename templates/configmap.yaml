@@ -1,0 +1,11 @@
+{{- if .Values.configmap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adp.fullname" . }}-config
+  labels:
+    {{- include "adp.labels" . | nindent 4 }}
+data:
+  {{ .Values.configmap.subPath }}: |-
+  {{ tpl (.Files.Get "files/config.yaml") . | indent 4 }}
+  {{- end }}

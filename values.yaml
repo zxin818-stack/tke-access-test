@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  tag: "latest"
+  repository: openapi.tencentcloudcr.com/default/golang-demo-test
+  tag: "20260111_V2"
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -14,7 +14,7 @@ fullnameOverride: ""
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -38,3 +38,32 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Application configuration
+app:
+  name: golang-demo-test
+  version: "1.0.0"
+
+  database:
+    host: localhost
+    port: 5432
+    username: admin
+    password: secret
+
+  server:
+    port: 8080
+    timeout: 30
+
+  features:
+    - auth
+    - logging
+    - caching
+
+# ConfigMap configuration
+configmap:
+  # Enable or disable configmap
+  enabled: true
+  # Mount path for configmap
+  mountPath: /config_file
+  # Sub path for config file
+  subPath: config.yaml
