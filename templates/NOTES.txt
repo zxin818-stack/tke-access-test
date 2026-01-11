@@ -1,15 +1,15 @@
 ADP应用已成功部署！
 
-{{- if .Values.service.type == "ClusterIP" }}
+{{- if eq .Values.service.type "ClusterIP" }}
 您可以通过以下方式访问应用：
 1. 在集群内部访问：{{ include "adp.fullname" . }}:{{ .Values.service.port }}
 2. 使用端口转发：kubectl port-forward svc/{{ include "adp.fullname" . }} 8080:{{ .Values.service.port }}
-{{- else if .Values.service.type == "NodePort" }}
+{{- else if eq .Values.service.type "NodePort" }}
 您可以通过任意节点的IP和NodePort访问应用：
 {{- range $key, $value := .Values.service.nodePorts }}
 - {{ $key }}: {{ $value }}
 {{- end }}
-{{- else if .Values.service.type == "LoadBalancer" }}
+{{- else if eq .Values.service.type "LoadBalancer" }}
 等待LoadBalancer分配外部IP后，通过外部IP访问应用。
 {{- end }}
 
