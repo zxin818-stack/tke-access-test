@@ -1,17 +1,17 @@
-app_name: {{ .Values.app.name }}
-version: {{ .Values.app.version | quote }}
+app_name: golang-demo-test
+version: "1.0.0"
 
 database:
-  host: {{ .Values.app.database.host }}
-  port: {{ .Values.app.database.port }}
-  username: {{ .Values.app.database.username }}
-  password: {{ .Values.app.database.password }}
+  host: localhost
+  port: 5432
+  username: admin
+  password: secret
 
 server:
-  port: {{ .Values.app.server.port }}
-  timeout: {{ .Values.app.server.timeout }}
+  port: 8080
+  timeout: 30
 
 features:
-  {{- range .Values.app.features }}
-- {{ . }}
-  {{- end }}
+  - auth
+  - logging
+  - caching
