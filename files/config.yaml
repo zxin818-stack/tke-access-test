@@ -1,5 +1,5 @@
 app_name: {{ .Values.app.name }}
-version: {{ .Values.app.version }}
+version: "123"
 
 database:
   host: {{ .Values.app.database.host }}
