@@ -9,4 +9,3 @@ name: adp
 sources:
   - https://github.com/zxin818-stack/adp_tke
 version: 0.1.0
-kubeVersion: <= 1.22.5-x
