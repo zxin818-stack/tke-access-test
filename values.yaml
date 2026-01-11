@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: ccr.ccs.tencentyun.com/fanyijun/golang-demo-test
+  repository: zxin818/golang-demo-test
   tag: "20260111_V2"
   pullPolicy: IfNotPresent
 
