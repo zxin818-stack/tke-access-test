@@ -39,12 +39,12 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /getconfig
+              port: {{ .Values.service.port }}
           readinessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /getconfig
+              port: {{ .Values.service.port }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- if .Values.configmap.enabled }}
