@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: zxin818/golang-demo-test
-  tag: "20260111_V4"
+  tag: "20260111_V6"
   pullPolicy: IfNotPresent
 
 nameOverride: ""
