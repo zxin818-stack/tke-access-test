@@ -4,8 +4,8 @@ description: A simple ADP application chart
 icon: https://imgcache.qq.com/qcloud/tcloud_dtc/static/Industry_tke/0f3b936a-06e0-4e4e-b723-ead8984846ce.png
 maintainers:
   - email: ceciazhang@tencent.com
-    name: adp
-name: adp
+    name: tke-access-test
+name: tke-access-test
 sources:
   - https://github.com/zxin818-stack/adp_tke
 version: 0.1.0
