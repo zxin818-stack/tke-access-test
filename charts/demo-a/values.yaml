@@ -12,7 +12,6 @@ tad:
     images: registry.tce.com
     packages: http://registry.tce.com:1181
   services: {}
-image: lmbke.tencentcloudcr.com/llm_customer/app-config:46_2512091122_master_private_906a551e_private
 replicas: 1
 resources:
   limits:
@@ -26,3 +25,48 @@ app_config:
   knowledge_qa_model:
     intent_recognize_model_name: workflow-pro # 知识库问答意图识别默认兜底模型名称
     text2sql_model_name: nl2sql-16b # 知识库问答文本转sql默认兜底模型名称，非信创nl2sql-16b，信创 nl2sql
+
+# Service配置
+service:
+  type: ClusterIP
+  port: 8080
+
+# 应用配置
+app:
+  name: demo-a-app
+  version: "1.0.0"
+  database:
+    host: localhost
+    port: 5432
+    username: admin
+    password: password
+  server:
+    port: 8080
+    timeout: 30s
+  features:
+    - feature1
+    - feature2
+    - feature3
+
+# 镜像配置
+image:
+  repository: lmbke.tencentcloudcr.com/llm_customer/app-config
+  tag: 46_2512091122_master_private_906a551e_private
+  pullPolicy: IfNotPresent
+
+# 自动伸缩配置
+autoscaling:
+  enabled: false
+
+# 副本数量
+replicaCount: 1
+
+# Pod注解
+podAnnotations: {}
+
+# ConfigMap配置
+configmap:
+  enabled: true
+  name: demo-a-config
+  mountPath: /app/config
+  subPath: config.yaml
