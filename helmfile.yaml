@@ -1,0 +1,51 @@
+# Helmfile配置 - 管理demo-a和demo-b的部署编排
+
+# 基础配置
+helmDefaults:
+  # 设置默认的kube上下文
+  kubeContext: "{{ .Environment.Values.kubeContext | default \"default\" }}"
+  # 验证chart
+  verify: false
+  # 等待资源就绪
+  wait: true
+  # 等待超时时间
+  timeout: 600
+  # 原子性操作
+  atomic: true
+  # 强制更新
+  force: false
+  # 创建命名空间
+  createNamespace: false
+
+# 发布定义
+releases:
+  # demo-b应用部署
+  - name: demo-b
+    namespace: default
+    chart: ./charts/demo-b
+    version: "1.0.0"
+    # 默认安装子chart
+    installed: true
+    values:
+      - ./values.yaml
+    # 设置标签用于选择性部署
+    labels:
+      component: demo-b
+      tier: backend
+    # 依赖demo-a先部署
+    needs:
+      - demo-a
+  # demo-a应用部署
+  - name: demo-a
+    namespace: default
+    chart: ./charts/demo-a
+    version: "1.0.0"
+    # 默认安装子chart
+    installed: true
+    values:
+      - ./values.yaml
+    # 设置标签用于选择性部署
+    labels:
+      component: demo-a
+      tier: backend
+
