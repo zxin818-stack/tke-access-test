@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adp.fullname" . }}
+  labels:
+    {{- include "adp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "adp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "adp.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.configmap.enabled }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-demo-b-config{{ end }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: LOCAL_CONFIG_PATH
+              value: {{ .Values.configmap.mountPath }}/{{ .Values.configmap.subPath }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /getconfig
+              port: {{ .Values.service.port }}
+          readinessProbe:
+            httpGet:
+              path: /getconfig
+              port: {{ .Values.service.port }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.configmap.enabled }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.configmap.mountPath }}
+          {{- end }}

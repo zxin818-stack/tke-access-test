@@ -9,3 +9,13 @@ name: adp
 sources:
   - https://github.com/zxin818-stack/adp_tke
 version: 0.1.0
+
+dependencies:
+  - name: demo-a
+    version: "1.0.0"
+    repository: "file://charts/demo-a"
+    condition: demo-a.enabled
+  - name: demo-b
+    version: "1.0.0"
+    repository: "file://charts/demo-b"
+    condition: demo-b.enabled

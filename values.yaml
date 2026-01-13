@@ -67,3 +67,6 @@ configmap:
   mountPath: /config_file
   # Sub path for config file
   subPath: config.yaml
+
+# Subchart configuration
+# 子chart的安装现在由helmfile.yaml控制，默认安装所有子chart
