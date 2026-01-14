@@ -19,7 +19,21 @@ helmDefaults:
 
 # 发布定义
 releases:
-  # demo-b应用部署
+  # demo-a应用部署（基础服务，先部署）
+  - name: demo-a
+    namespace: default
+    chart: ./charts/demo-a
+    version: "1.0.0"
+    # 默认安装子chart
+    installed: true
+    values:
+      - ./values.yaml
+    # 设置标签用于选择性部署
+    labels:
+      component: demo-a
+      tier: backend
+
+  # demo-b应用部署（依赖demo-a）
   - name: demo-b
     namespace: default
     chart: ./charts/demo-b
@@ -35,17 +49,4 @@ releases:
     # 依赖demo-a先部署
     needs:
       - demo-a
-  # demo-a应用部署
-  - name: demo-a
-    namespace: default
-    chart: ./charts/demo-a
-    version: "1.0.0"
-    # 默认安装子chart
-    installed: true
-    values:
-      - ./values.yaml
-    # 设置标签用于选择性部署
-    labels:
-      component: demo-a
-      tier: backend
 

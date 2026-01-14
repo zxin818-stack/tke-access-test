@@ -42,7 +42,7 @@ app:
     password: password
   server:
     port: 8080
-    timeout: 30s
+    timeout: 30
   features:
     - feature1
     - feature2
@@ -50,8 +50,8 @@ app:
 
 # 镜像配置
 image:
-  repository: lmbke.tencentcloudcr.com/llm_customer/app-config
-  tag: 46_2512091122_master_private_906a551e_private
+  repository: zxin818/golang-demo-test
+  tag: 20260111_V6
   pullPolicy: IfNotPresent
 
 # 自动伸缩配置
