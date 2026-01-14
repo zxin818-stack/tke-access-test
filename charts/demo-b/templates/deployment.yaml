@@ -26,19 +26,20 @@ spec:
           configMap:
             name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-demo-b-config{{ end }}
       {{- end }}
+      serviceAccountName: {{ include "adp.fullname" . }}-sa
       initContainers:
         - name: wait-for-demo-a
-          image: busybox:1.36
+          image: bitnami/kubectl:latest
           command:
             - sh
             - -c
             - |
-              echo "Waiting for demo-a service to be available..."
-              until nc -z test-demo-a 8080; do
-                echo "demo-a service is not ready yet, waiting..."
+              echo "Waiting for demo-a pods to be in Running state..."
+              until kubectl get pods -l app.kubernetes.io/name=demo-a -n {{ .Release.Namespace }} -o jsonpath='{.items[*].status.phase}' | grep -q "Running"; do
+                echo "demo-a pods are not in Running state yet, waiting..."
                 sleep 5
               done
-              echo "demo-a service is ready! Starting demo-b..."
+              echo "demo-a pods are Running! Starting demo-b..."
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
