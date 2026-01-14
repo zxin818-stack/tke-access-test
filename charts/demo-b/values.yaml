@@ -70,3 +70,13 @@ configmap:
   name: demo-b-config
   mountPath: /app/config
   subPath: config.yaml
+
+# 依赖服务配置
+dependencies:
+  demoA:
+    # demo-a 的 release 名称（用于构建 Service 名称）
+    # 如果 demo-a 的 release 名称包含 "demo-a"，则 Service 名称就是 release 名称
+    # 否则 Service 名称是 "<release>-demo-a"
+    releaseName: demo-a  # demo-a 的 release 名称
+    chartName: demo-a    # demo-a 的 chart 名称
+    servicePort: 8080

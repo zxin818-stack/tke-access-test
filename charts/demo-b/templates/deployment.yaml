@@ -26,6 +26,19 @@ spec:
           configMap:
             name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-demo-b-config{{ end }}
       {{- end }}
+      initContainers:
+        - name: wait-for-demo-a
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for demo-a service to be available..."
+              until nc -z test-demo-a 8080; do
+                echo "demo-a service is not ready yet, waiting..."
+                sleep 5
+              done
+              echo "demo-a service is ready! Starting demo-b..."
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
