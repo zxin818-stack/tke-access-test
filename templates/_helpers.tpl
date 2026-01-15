@@ -49,3 +49,27 @@ Selector labels
 app.kubernetes.io/name: {{ include "adp.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
+
+{{/*
+判断是否需要 initContainer
+直接检测节点 label 中是否包含 "tke.cloud.tencent"
+这是一个全局 helper 函数，可以被所有子 chart 使用
+*/}}
+{{- define "adp.needInitContainer" -}}
+{{- $needInit := false -}}
+{{- $nodes := lookup "v1" "Node" "" "" -}}
+{{- if $nodes -}}
+  {{- range $nodes.items -}}
+    {{- range $key, $value := .metadata.labels -}}
+      {{- if contains "tke.cloud.tencent" $key -}}
+        {{- $needInit = true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if $needInit -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}
