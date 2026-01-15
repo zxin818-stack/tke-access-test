@@ -1,16 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "adp.name" -}}
+{{- define "job-env.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
 */}}
-{{- define "adp.fullname" -}}
+{{- define "job-env.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -26,16 +24,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "adp.chart" -}}
+{{- define "job-env.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "adp.labels" -}}
-helm.sh/chart: {{ include "adp.chart" . }}
-{{ include "adp.selectorLabels" . }}
+{{- define "job-env.labels" -}}
+helm.sh/chart: {{ include "job-env.chart" . }}
+{{ include "job-env.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,20 +43,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "adp.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "adp.name" . }}
+{{- define "job-env.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "job-env.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
-
-{{/*
-判断是否需要 initContainer
-从 ConfigMap cluster-info 中读取 clusterType，如果等于 "tke" 则返回 "true"
-*/}}
-{{- define "adp.needInitContainer" -}}
-{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace "cluster-info" -}}
-{{- if $cm -}}
-  {{- if eq ($cm.data.clusterType) "tke" -}}
-true
-  {{- end -}}
-{{- end -}}
 {{- end -}}

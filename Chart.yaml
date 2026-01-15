@@ -9,3 +9,7 @@ name: tke-access-test
 sources:
   - https://github.com/zxin818-stack/adp_tke
 version: 0.1.0
+dependencies:
+  - name: job-env
+    version: 0.1.0
+    condition: job-env.enabled

@@ -69,4 +69,20 @@ configmap:
   subPath: config.yaml
 
 # Subchart configuration
-# 所有子chart默认都会部署
+# 子chart的安装现在由helmfile.yaml控制，默认安装所有子chart
+
+# Job-A configuration (pre-install hook, weight: -5)
+job-a:
+  enabled: true
+
+# Job-B configuration (pre-install hook, weight: -3)
+job-b:
+  enabled: true
+
+# Demo-A configuration
+demo-a:
+  enabled: true
+
+# Demo-B configuration
+demo-b:
+  enabled: true

@@ -1,0 +1,43 @@
+# Default values for job-env
+# 集群环境检测 Job 配置
+
+# RBAC 配置
+rbac:
+  # RBAC 资源的 Hook 权重（ServiceAccount、ClusterRole、ClusterRoleBinding）
+  # 必须小于 job.hookWeight，确保 RBAC 资源先创建
+  hookWeight: "-15"
+
+# Job 配置
+job:
+  # Job 的 Hook 权重
+  # 必须大于 rbac.hookWeight，确保 Job 在 RBAC 资源创建后执行
+  hookWeight: "-10"
+  # 完成后删除策略
+  ttlSecondsAfterFinished: 100
+  # 重试次数
+  backoffLimit: 3
+
+# 镜像配置
+image:
+  repository: bitnami/kubectl
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# 资源限制
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# ConfigMap 配置
+configmap:
+  # ConfigMap 名称
+  name: cluster-info
+
+# 检测配置
+detection:
+  # 检测规则：检查节点 label 是否包含此字符串（模糊匹配）
+  labelPattern: "tke.cloud.tencent"

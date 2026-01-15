@@ -27,6 +27,7 @@ spec:
             name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-demo-b-config{{ end }}
       {{- end }}
       serviceAccountName: {{ include "adp.fullname" . }}-sa
+      {{- if eq (include "adp.needInitContainer" .) "true" }}
       initContainers:
         - name: wait-for-demo-a
           image: bitnami/kubectl:latest
@@ -40,11 +41,18 @@ spec:
                 sleep 5
               done
               echo "demo-a pods are Running! Starting demo-b..."
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: CLUSTER_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: cluster-info
+                  key: clusterType
+                  optional: true
             - name: LOCAL_CONFIG_PATH
               value: {{ .Values.configmap.mountPath }}/{{ .Values.configmap.subPath }}
           ports:
