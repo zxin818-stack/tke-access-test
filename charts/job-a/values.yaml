@@ -1,0 +1,48 @@
+tad:
+  type: helm
+  images:
+    job-a:
+      url: busybox:1.36
+  instanceStrategy:
+    level: region
+  labels: {}
+  namespace: customer
+  product: llm-knowledge-engine
+  registries:
+    images: registry.tce.com
+    packages: http://registry.tce.com:1181
+  services: {}
+
+# Job配置
+job:
+  name: job-a
+  # Job的hook权重，数字越小越先执行
+  hookWeight: "-5"
+  # Job的hook删除策略
+  hookDeletePolicy: "before-hook-creation,hook-succeeded"
+  # Job完成后保留的时间（秒）
+  ttlSecondsAfterFinished: 100
+  # Job失败后的重试次数
+  backoffLimit: 3
+  # Job的并行度
+  parallelism: 1
+  # Job需要完成的次数
+  completions: 1
+
+# 镜像配置
+image:
+  repository: busybox
+  tag: "1.36"
+  pullPolicy: IfNotPresent
+
+# 资源配置
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Pod注解
+podAnnotations: {}

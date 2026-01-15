@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "adp.fullname" . }}
+  labels:
+    {{- include "adp.labels" . | nindent 4 }}
+  annotations:
+    # 使用 Helm hook 在安装/升级前执行
+    "helm.sh/hook": pre-install,pre-upgrade
+    # hook 权重，数字越小越先执行，job-b 在 job-a 之后
+    "helm.sh/hook-weight": {{ .Values.job.hookWeight | quote }}
+    # hook 删除策略
+    "helm.sh/hook-delete-policy": {{ .Values.job.hookDeletePolicy | quote }}
+spec:
+  # Job完成后保留的时间
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  # 失败重试次数
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  # 并行度
+  parallelism: {{ .Values.job.parallelism }}
+  # 完成次数
+  completions: {{ .Values.job.completions }}
+  template:
+    metadata:
+      labels:
+        {{- include "adp.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: {{ .Values.job.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              echo "=========================================="
+              echo "Job-B started at $(date)"
+              echo "=========================================="
+              echo "Executing pre-deployment tasks for job-b..."
+              echo "Task 1: Waiting for job-a completion..."
+              sleep 3
+              echo "Task 2: Preparing database migrations..."
+              sleep 5
+              echo "Task 3: Setting up configurations..."
+              sleep 5
+              echo "Task 4: Running health checks..."
+              sleep 3
+              echo "=========================================="
+              echo "Job-B completed successfully at $(date)"
+              echo "=========================================="
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
