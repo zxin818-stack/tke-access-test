@@ -52,13 +52,23 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/*
 判断是否需要 initContainer
-从 ConfigMap cluster-info 中读取 clusterType，如果等于 "tke" 则返回 "true"
+直接检测节点 label 中是否包含 "tke.cloud.tencent"
 */}}
 {{- define "adp.needInitContainer" -}}
-{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace "cluster-info" -}}
-{{- if $cm -}}
-  {{- if eq ($cm.data.clusterType) "tke" -}}
-true
+{{- $needInit := false -}}
+{{- $nodes := lookup "v1" "Node" "" "" -}}
+{{- if $nodes -}}
+  {{- range $nodes.items -}}
+    {{- range $key, $value := .metadata.labels -}}
+      {{- if contains "tke.cloud.tencent" $key -}}
+        {{- $needInit = true -}}
+      {{- end -}}
+    {{- end -}}
   {{- end -}}
+{{- end -}}
+{{- if $needInit -}}
+true
+{{- else -}}
+false
 {{- end -}}
 {{- end -}}

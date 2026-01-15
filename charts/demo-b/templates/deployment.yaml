@@ -35,12 +35,13 @@ spec:
             - sh
             - -c
             - |
+              echo "=== TKE Cluster Detected ==="
               echo "Waiting for demo-a pods to be in Running state..."
-              until kubectl get pods -l app.kubernetes.io/name=demo-a -n {{ .Release.Namespace }} -o jsonpath='{.items[*].status.phase}' | grep -q "Running"; do
+              until kubectl get pods -l app.kubernetes.io/name=demo-a -n {{ .Release.Namespace }} -o jsonpath='{.items[*].status.phase}' 2>/dev/null | grep -q "Running"; do
                 echo "demo-a pods are not in Running state yet, waiting..."
                 sleep 5
               done
-              echo "demo-a pods are Running! Starting demo-b..."
+              echo "✓ demo-a pods are Running! Starting demo-b..."
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
