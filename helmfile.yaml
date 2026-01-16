@@ -1,0 +1,127 @@
+# Helmfile for tke-access-test
+# 用于管理多个 Helm Charts 的部署
+
+# 依赖检查器全局配置
+dependencyChecker:
+  # 检查间隔（秒）
+  checkInterval: 5
+  # 最大重试次数（120次 * 5秒 = 10分钟）
+  maxRetries: 120
+  # 是否启用详细日志
+  verbose: true
+
+# Helmfile 配置
+helmDefaults:
+  # 等待所有资源就绪
+  wait: true
+  # 超时时间（秒）
+  timeout: 600
+  # 如果 release 不存在则创建，存在则更新
+  createNamespace: true
+  # 强制更新
+  force: false
+  # 原子操作：如果失败则回滚
+  atomic: true
+  # 清理失败的 release
+  cleanupOnFail: true
+  # Helm 命令的额外参数
+  args:
+    - "--debug"
+
+# 环境配置
+environments:
+
+
+# Repositories（如果使用外部 chart repository）
+repositories:
+  # 示例：添加外部 chart repository
+  # - name: stable
+  #   url: https://charts.helm.sh/stable
+  # - name: bitnami
+  #   url: https://charts.bitnami.com/bitnami
+
+# Release 配置
+releases:
+  - name: job-a
+    # Chart 路径
+    chart: ./charts/job-a
+    # 命名空间
+    namespace: default
+    # 是否启用（可通过环境变量控制）
+    installed: {{ env "JOB_A_ENABLED" | default "true" }}
+    # 等待 Job 完成
+    wait: true
+    # 超时时间
+    timeout: 300
+    # Hooks（在特定阶段执行）
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "echo"
+        args: ["Starting Job-A deployment..."]
+      - events: ["postsync"]
+        showlogs: true
+        command: "echo"
+        args: ["Job-A deployment completed!"]
+
+
+  - name: job-b
+    chart: ./charts/job-b
+    namespace: default
+    installed: {{ env "JOB_B_ENABLED" | default "true" }}
+    wait: true
+    timeout: 300
+    set:
+      - name: enabled
+        value: true
+    # 依赖关系：等待 job-a 完成后再执行
+    needs:
+      - job-a
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "echo"
+        args: ["Starting Job-B deployment..."]
+      - events: ["postsync"]
+        showlogs: true
+        command: "echo"
+        args: ["Job-B deployment completed!"]
+
+
+  - name: demo-a
+    chart: ./charts/demo-a
+    namespace: default
+    installed: {{ env "DEMO_A_ENABLED" | default "true" }}
+    wait: true
+    timeout: 600
+
+
+  - name: demo-b
+    chart: ./charts/demo-b
+    namespace: default
+    installed: {{ env "DEMO_B_ENABLED" | default "true" }}
+    wait: true
+    timeout: 600
+    # 依赖关系：等待 Jobs 完成
+    needs:
+      - demo-a
+
+#############################################################################
+# 模板配置（可选）
+#############################################################################
+templates:
+  # 默认配置模板
+  default: &default
+    missingFileHandler: Warn
+    values:
+      - ./values.yaml
+    verify: false
+    
+#############################################################################
+# 全局 Hooks（可选）
+#############################################################################
+helmfiles:
+  # 如果有其他 helmfile 需要包含
+  # - path: ./helmfiles/monitoring.yaml
+  #   selectors:
+  #     - name=prometheus

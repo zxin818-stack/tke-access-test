@@ -20,29 +20,18 @@ spec:
       labels:
         {{- include "adp.selectorLabels" . | nindent 8 }}
     spec:
-      {{- if .Values.configmap.enabled }}
       volumes:
+        {{- if .Values.configmap.enabled }}
         - name: config-volume
           configMap:
             name: {{ if .Values.configmap.name }}{{ .Values.configmap.name }}{{ else }}{{ include "adp.fullname" . }}-demo-b-config{{ end }}
-      {{- end }}
-      serviceAccountName: {{ include "adp.fullname" . }}-sa
+        {{- end }}
+        {{- include "adp.dependencyChecker.volumes" . | nindent 8 }}
       {{- if eq (include "adp.needInitContainer" .) "true" }}
-      initContainers:
-        - name: wait-for-demo-a
-          image: bitnami/kubectl:latest
-          command:
-            - sh
-            - -c
-            - |
-              echo "=== TKE Cluster Detected ==="
-              echo "Waiting for demo-a pods to be in Running state..."
-              until kubectl get pods -l app.kubernetes.io/name=demo-a -n {{ .Release.Namespace }} -o jsonpath='{.items[*].status.phase}' 2>/dev/null | grep -q "Running"; do
-                echo "demo-a pods are not in Running state yet, waiting..."
-                sleep 5
-              done
-              echo "✓ demo-a pods are Running! Starting demo-b..."
+      serviceAccountName: {{ include "adp.fullname" . }}-sa
       {{- end }}
+      initContainers:
+        {{- include "adp.dependencyChecker.initContainer" . | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

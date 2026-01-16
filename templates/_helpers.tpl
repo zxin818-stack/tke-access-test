@@ -73,3 +73,45 @@ true
 false
 {{- end -}}
 {{- end -}}
+
+{{/*
+依赖检查器 - Volumes 模板
+用于挂载依赖检查脚本和 helmfile 配置
+使用方式：{{- include "adp.dependencyChecker.volumes" . | nindent 8 }}
+*/}}
+{{- define "adp.dependencyChecker.volumes" -}}
+{{- if eq (include "adp.needInitContainer" .) "true" }}
+- name: dependency-checker-script
+  configMap:
+    name: dependency-checker-script
+    defaultMode: 0755
+- name: helmfile-config
+  configMap:
+    name: helmfile-config
+{{- end }}
+{{- end -}}
+
+{{/*
+依赖检查器 - InitContainer 模板
+用于等待依赖项就绪
+使用方式：{{- include "adp.dependencyChecker.initContainer" . | nindent 8 }}
+*/}}
+{{- define "adp.dependencyChecker.initContainer" -}}
+{{- if eq (include "adp.needInitContainer" .) "true" }}
+- name: wait-for-dependencies
+  image: bitnami/kubectl:latest
+  env:
+    - name: RELEASE_NAME
+      value: "{{ .Release.Name }}"
+    - name: NAMESPACE
+      value: "{{ .Release.Namespace }}"
+  command:
+    - /bin/bash
+    - /scripts/check-dependencies.sh
+  volumeMounts:
+    - name: dependency-checker-script
+      mountPath: /scripts
+    - name: helmfile-config
+      mountPath: /helmfile
+{{- end }}
+{{- end -}}
