@@ -64,6 +64,10 @@ replicaCount: 1
 # Pod注解
 podAnnotations: {}
 
+# Helmfile Release Name（用于依赖检查）
+# 这个值应该与 helmfile.yaml 中定义的 release name 一致
+helmfileReleaseName: demo-b
+
 # ConfigMap配置
 configmap:
   enabled: true

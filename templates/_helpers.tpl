@@ -102,7 +102,7 @@ false
   image: bitnami/kubectl:latest
   env:
     - name: RELEASE_NAME
-      value: "{{ .Release.Name }}"
+      value: "{{ .Values.helmfileReleaseName | default .Chart.Name }}"
     - name: NAMESPACE
       value: "{{ .Release.Namespace }}"
   command:

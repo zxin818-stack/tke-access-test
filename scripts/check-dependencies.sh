@@ -117,7 +117,7 @@ parse_dependencies() {
     local release_name=$1
     local dependencies=()
 
-    log_info "Parsing dependencies for release: $release_name"
+    log_info "Parsing dependencies for release: $release_name" >&2
 
     # 尝试使用 yq 解析（更可靠）
     if command -v yq &> /dev/null; then
@@ -164,11 +164,11 @@ parse_dependencies() {
 
     # 输出依赖项
     if [ ${#dependencies[@]} -eq 0 ]; then
-        log_info "No dependencies found for release: $release_name"
+        log_info "No dependencies found for release: $release_name" >&2
         return 0
     fi
 
-    log_info "Found ${#dependencies[@]} dependencies: ${dependencies[*]}"
+    log_info "Found ${#dependencies[@]} dependencies: ${dependencies[*]}" >&2
     echo "${dependencies[@]}"
 }
 
@@ -177,36 +177,67 @@ check_dependency_status() {
     local dep_name=$1
     local namespace=$2
 
-    # 获取该依赖项的所有 pod
-    local pods=$(kubectl get pods -n "$namespace" -l "app.kubernetes.io/name=$dep_name" -o json 2>/dev/null || echo '{"items":[]}')
-    
+    if [ "$VERBOSE" = "true" ]; then
+        log_info "  [DEBUG] Checking dependency: $dep_name in namespace: $namespace" >&2
+    fi
+
+    # 使用 app.kubernetes.io/name label 查找 pod
+    local label_selector="app.kubernetes.io/name=$dep_name"
+
+    if [ "$VERBOSE" = "true" ]; then
+        log_info "  [DEBUG] Using label selector: $label_selector" >&2
+    fi
+
+    # 获取该依赖项的所有 pod 名称
+    local pod_names=$(kubectl get pods -n "$namespace" -l "$label_selector" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+
+    if [ "$VERBOSE" = "true" ]; then
+        log_info "  [DEBUG] Found pod names: '$pod_names'" >&2
+    fi
+
     # 检查是否有 pod
-    local pod_count=$(echo "$pods" | grep -o '"name":' | wc -l)
-    if [ "$pod_count" -eq 0 ]; then
+    if [ -z "$pod_names" ] || [ "$pod_names" = " " ]; then
+        if [ "$VERBOSE" = "true" ]; then
+            log_info "  No pods found with label: $label_selector" >&2
+        fi
         echo "NO_PODS"
         return 1
     fi
 
+    # 统计 pod 数量
+    local pod_count=$(echo "$pod_names" | wc -w | tr -d ' ')
+    log_info "  Found $pod_count pod(s) for dependency '$dep_name'" >&2
+
     # 检查所有 pod 的状态
-    local all_running=true
+    local all_ready=true
     local status_summary=""
+    local ready_count=0
 
     # 解析每个 pod 的状态
-    while IFS= read -r pod_name; do
+    for pod_name in $pod_names; do
         if [ -z "$pod_name" ]; then
             continue
         fi
 
         local phase=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown")
         local ready=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "False")
+        local container_ready=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.status.containerStatuses[0].ready}' 2>/dev/null || echo "false")
 
-        if [ "$phase" != "Running" ] || [ "$ready" != "True" ]; then
-            all_running=false
-            status_summary="${status_summary}${pod_name}(${phase},Ready=${ready}) "
+        # 始终显示 pod 状态，方便调试
+        log_info "    Pod: $pod_name | Phase: $phase | Ready: $ready | ContainerReady: $container_ready" >&2
+
+        # 必须同时满足：Phase=Running 且 Ready=True 且 ContainerReady=true
+        if [ "$phase" != "Running" ] || [ "$ready" != "True" ] || [ "$container_ready" != "true" ]; then
+            all_ready=false
+            status_summary="${status_summary}${pod_name}(Phase=$phase,Ready=$ready,ContainerReady=$container_ready) "
+        else
+            ready_count=$((ready_count + 1))
         fi
-    done < <(kubectl get pods -n "$namespace" -l "app.kubernetes.io/name=$dep_name" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | tr ' ' '\n')
+    done
 
-    if [ "$all_running" = true ]; then
+    log_info "  Ready pods: $ready_count/$pod_count" >&2
+
+    if [ "$all_ready" = true ] && [ "$ready_count" -gt 0 ]; then
         echo "RUNNING"
         return 0
     else
@@ -239,7 +270,9 @@ wait_for_dependencies() {
         for dep in "${dependencies[@]}"; do
             log_info "Checking dependency: $dep"
             
-            local status=$(check_dependency_status "$dep" "$NAMESPACE")
+            # 先执行函数并捕获输出，然后立即获取退出码
+            local status
+            status=$(check_dependency_status "$dep" "$NAMESPACE")
             local exit_code=$?
 
             if [ $exit_code -eq 0 ]; then
